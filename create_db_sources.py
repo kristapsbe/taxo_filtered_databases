@@ -181,7 +181,7 @@ def generate_dbfiles(accessionid, taxid, outname):
                     r = f.readline()
                     while r:
                         if ">" in r:
-                            if r.split("_")[1] in taxid[k]:
+                            if r.split("_")[1].strip() in taxid[k]:
                                 write_next = True
                                 wf.write(r)
                             else:
