@@ -215,7 +215,7 @@ generate_dbfiles(accessionid, taxid, "db_files/full_refseq")
 # EACH SPECIES ONLY USES THE FIRST TAXID THAT REPRESENTS IT
 #
 taxid = {species:[list(taxids.keys())[0]] for species,taxids in mapping.items()}
-{species:taxids[list(taxids.keys())[0]] for species,taxids in mapping.items()} 
+accessionid = {species:taxids[list(taxids.keys())[0]] for species,taxids in mapping.items()} 
 
 generate_dbfiles(accessionid, taxid, "db_files/only_first")
 
