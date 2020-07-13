@@ -169,142 +169,89 @@ valid_species = [
 with open('mapping.json', 'r') as file:
      mapping = json.load(file)
 
-def generate_dbfiles(accessionid, taxid, outname):
-    write_next = False
+selected = {
+    "full_refseq": { # FULL REFSEQ
+        "taxid": {species:list(taxids.keys()) for species,taxids in mapping.items()}
+    },
+    "only_first": { # EACH SPECIES ONLY USES THE FIRST TAXID THAT REPRESENTS IT
+        "taxid": {species:[list(taxids.keys())[0]] for species,taxids in mapping.items()}
+    },
+    "each_random_1": { # EACH SPECIES USES A RANDOM TAXID TO REPRESENT IT #1
+        "taxid": {species:[list(taxids.keys())[random.randrange(len(taxids.keys()))]] for species,taxids in mapping.items()}
+    },
+    "each_random_2": { # EACH SPECIES USES A RANDOM TAXID TO REPRESENT IT #2
+        "taxid": {species:[list(taxids.keys())[random.randrange(len(taxids.keys()))]] for species,taxids in mapping.items()}
+    },
+    "each_random_3": { # EACH SPECIES USES A RANDOM TAXID TO REPRESENT IT #3
+        "taxid": {species:[list(taxids.keys())[random.randrange(len(taxids.keys()))]] for species,taxids in mapping.items()}
+    },
+    "random_30_1": { # USE A RANDOM SET OF 30% OF ALL TAXID #1
+        "taxid": {species:[x for x in list(taxids.keys()) if random.random() < 0.3] for species,taxids in mapping.items()}
+    },
+    "random_30_2": { # USE A RANDOM SET OF 30% OF ALL TAXID #2
+        "taxid": {species:[x for x in list(taxids.keys()) if random.random() < 0.3] for species,taxids in mapping.items()}
+    },
+    "random_30_3": { # USE A RANDOM SET OF 30% OF ALL TAXID #3
+        "taxid": {species:[x for x in list(taxids.keys()) if random.random() < 0.3] for species,taxids in mapping.items()}
+    },
+    "random_10_1": { # USE A RANDOM SET OF 10% OF ALL TAXID #1
+        "taxid": {species:[x for x in list(taxids.keys()) if random.random() < 0.1] for species,taxids in mapping.items()}
+    },
+    "random_10_2": { # USE A RANDOM SET OF 10% OF ALL TAXID #1
+        "taxid": {species:[x for x in list(taxids.keys()) if random.random() < 0.1] for species,taxids in mapping.items()}
+    },
+    "random_10_3": { # USE A RANDOM SET OF 10% OF ALL TAXID #1
+        "taxid": {species:[x for x in list(taxids.keys()) if random.random() < 0.1] for species,taxids in mapping.items()}
+    }
+}
 
-    for k,v in taxid.items():
-        print(k)
-        # only do anything if there are any taxids to work with and if we've got both prot and nucl data for this species
-        if len(v) > 0 and os.path.exists("prot/prot_"+k) and os.path.exists("nucl/nucl_"+k):
-            with open("prot/prot_"+k, "r") as f:
-                with open(outname+"_prot.fa", "a") as wf:
-                    r = f.readline()
-                    while r:
-                        if ">" in r:
-                            if r.split("_")[1].strip() in taxid[k]:
-                                write_next = True
-                                wf.write(r)
-                            else:
-                                write_next = False
-                        elif write_next:
-                            wf.write(r)
+selected["full_refseq"]["accessionid"] = {species:sum(list(taxids.values()), []) for species,taxids in mapping.items()}
+selected["only_first"]["accessionid"] = {species:taxids[list(taxids.keys())[0]] for species,taxids in mapping.items()} 
+selected["each_random_1"]["accessionid"] = {species:taxids[list(taxids.keys())[list(taxids.keys()).index(selected["each_random_1"]["taxid"][species][0])]] for species,taxids in mapping.items()}
+selected["each_random_2"]["accessionid"] = {species:taxids[list(taxids.keys())[list(taxids.keys()).index(selected["each_random_2"]["taxid"][species][0])]] for species,taxids in mapping.items()}
+selected["each_random_3"]["accessionid"] = {species:taxids[list(taxids.keys())[list(taxids.keys()).index(selected["each_random_3"]["taxid"][species][0])]] for species,taxids in mapping.items()}
+selected["random_30_1"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_30_1"]["taxid"][species]], []) for species,taxids in mapping.items()} 
+selected["random_30_2"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_30_2"]["taxid"][species]], []) for species,taxids in mapping.items()} 
+selected["random_30_3"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_30_3"]["taxid"][species]], []) for species,taxids in mapping.items()} 
+selected["random_10_1"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_10_1"]["taxid"][species]], []) for species,taxids in mapping.items()} 
+selected["random_10_2"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_10_2"]["taxid"][species]], []) for species,taxids in mapping.items()} 
+selected["random_10_3"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_10_3"]["taxid"][species]], []) for species,taxids in mapping.items()} 
 
-                        r = f.readline()
+write_next = {k:False for k in selected.keys()}
 
-            with open("nucl/nucl_"+k, "r") as f:
-                with open(outname+"_nucl.fa", "a") as wf:
-                    r = f.readline()
-                    while r:
-                        if ">" in r:  
-                            if r.split(" ")[0].split(".")[0][1:] in accessionid[k]:
-                                write_next = True
-                                wf.write(r)
-                            else:
-                                write_next = False
-                        elif write_next:
-                            wf.write(r)
-
-                        r = f.readline()
-
-#
-# FULL REFSEQ
-#
-# get all taxids so that we can filter out everything from the protein data
-taxid = {species:list(taxids.keys()) for species,taxids in mapping.items()}
-# get all accession numbers so that we can filter out everything nucleotide data
-accessionid = {species:sum(list(taxids.values()), []) for species,taxids in mapping.items()}
- 
-generate_dbfiles(accessionid, taxid, "db_files/full_refseq")
+for k,_ in selected["full_refseq"]["taxid"].items(): # just looping through all of the species
+    print(k)
     
-#
-# EACH SPECIES ONLY USES THE FIRST TAXID THAT REPRESENTS IT
-#
-taxid = {species:[list(taxids.keys())[0]] for species,taxids in mapping.items()}
-accessionid = {species:taxids[list(taxids.keys())[0]] for species,taxids in mapping.items()} 
+    with open("prot/prot_"+k, "r") as f:
+        r = f.readline()
+        while r:
+            for sk,sv in selected.items():
+                if ">" in r:
+                    if r.split("_")[1].strip() in sv["taxid"][k]:
+                        write_next[sk] = True
+                        with open("db_files/"+sk+"_prot.fa", "a") as wf:
+                            wf.write(r)
+                    else:
+                        write_next[sk] = False
+                elif write_next[sk]:
+                    with open("db_files/"+sk+"_prot.fa", "a") as wf:
+                        wf.write(r)
 
-generate_dbfiles(accessionid, taxid, "db_files/only_first")
+            r = f.readline()
+                
+    with open("nucl/nucl_"+k, "r") as f:
+        r = f.readline()
+        while r:
+            for sk,sv in selected.items():
+                if ">" in r:
+                    if r.split(" ")[0].split(".")[0][1:] in sv["accessionid"][k]:
+                        write_next[sk] = True
+                        with open("db_files/"+sk+"_nucl.fa", "a") as wf:
+                            wf.write(r)
+                    else:
+                        write_next[sk] = False
+                elif write_next[sk]:
+                    with open("db_files/"+sk+"_nucl.fa", "a") as wf:
+                        wf.write(r)
 
-#
-# EACH SPECIES USES A RANDOM TAXID TO REPRESENT IT #1
-#
-taxid = {species:[list(taxids.keys())[random.randrange(len(taxids.keys()))]] for species,taxids in mapping.items()}
-accessionid = {species:taxids[list(taxids.keys())[list(taxids.keys()).index(taxid[species][0])]] for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/each_random_1")
-   
-#
-# EACH SPECIES USES A RANDOM TAXID TO REPRESENT IT #2
-#
-taxid = {species:[list(taxids.keys())[random.randrange(len(taxids.keys()))]] for species,taxids in mapping.items()}
-accessionid = {species:taxids[list(taxids.keys())[list(taxids.keys()).index(taxid[species][0])]] for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/each_random_2")
-   
-#
-# EACH SPECIES USES A RANDOM TAXID TO REPRESENT IT #3
-#
-taxid = {species:[list(taxids.keys())[random.randrange(len(taxids.keys()))]] for species,taxids in mapping.items()}
-accessionid = {species:taxids[list(taxids.keys())[list(taxids.keys()).index(taxid[species][0])]] for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/each_random_3")
-   
-#
-# WE USE ONLY SPECIES THAT HAVE BEEN EXTRACTED FROM THE GUT MICROBIOTA ARTICLE
-#
-taxid = {species:list(taxids.keys()) for species,taxids in mapping.items() if species.lower() in valid_species}
-accessionid = {species:sum(list(taxids.values()), []) for species,taxids in mapping.items() if species.lower() in valid_species}
- 
-generate_dbfiles(accessionid, taxid, "db_files/only_gut_nature")
-   
-#
-# USE A RANDOM SET OF 30% OF ALL TAXID #1
-#
-incl = 0.3
-
-taxid = {species:[x for x in list(taxids.keys()) if random.random() < incl] for species,taxids in mapping.items()}
-accessionid = {species:sum([x for z,x in taxids.items() if z in taxid[species]], []) for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/random_30_1")
-   
-#
-# USE A RANDOM SET OF 30% OF ALL TAXID #2
-#import os
-taxid = {species:[x for x in list(taxids.keys()) if random.random() < incl] for species,taxids in mapping.items()}
-accessionid = {species:sum([x for z,x in taxids.items() if z in taxid[species]], []) for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/random_30_2")
-   
-#
-# USE A RANDOM SET OF 30% OF ALL TAXID #3
-#
-taxid = {species:[x for x in list(taxids.keys()) if random.random() < incl] for species,taxids in mapping.items()}
-accessionid = {species:sum([x for z,x in taxids.items() if z in taxid[species]], []) for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/random_30_3")
-   
-#
-# USE A RANDOM SET OF 10% OF ALL TAXID #1
-#
-incl = 0.1
-
-taxid = {species:[x for x in list(taxids.keys()) if random.random() < incl] for species,taxids in mapping.items()}
-accessionid = {species:sum([x for z,x in taxids.items() if z in taxid[species]], []) for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/random_10_1")
-   
-#
-# USE A RANDOM SET OF 10% OF ALL TAXID #2
-#
-taxid = {species:[x for x in list(taxids.keys()) if random.random() < incl] for species,taxids in mapping.items()}
-accessionid = {species:sum([x for z,x in taxids.items() if z in taxid[species]], []) for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/random_10_2")
-   
-#
-# USE A RANDOM SET OF 10% OF ALL TAXID #3
-#
-taxid = {species:[x for x in list(taxids.keys()) if random.random() < incl] for species,taxids in mapping.items()}
-accessionid = {species:sum([x for z,x in taxids.items() if z in taxid[species]], []) for species,taxids in mapping.items()} 
- 
-generate_dbfiles(accessionid, taxid, "db_files/random_10_3")
-   
+            r = f.readline()
