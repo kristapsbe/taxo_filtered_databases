@@ -218,40 +218,43 @@ selected["random_10_2"]["accessionid"] = {species:sum([x for z,x in taxids.items
 selected["random_10_3"]["accessionid"] = {species:sum([x for z,x in taxids.items() if z in selected["random_10_3"]["taxid"][species]], []) for species,taxids in mapping.items()} 
 
 write_next = {k:False for k in selected.keys()}
+outfiles_prot = {k:open("db_files/"+k+"_prot.fa", "a") for k in selected.keys()}
+outfiles_nucl = {k:open("db_files/"+k+"_nucl.fa", "a") for k in selected.keys()}
 
 for k,_ in selected["full_refseq"]["taxid"].items(): # just looping through all of the species
-    print(k)
+    #print(k)
     
-    with open("prot/prot_"+k, "r") as f:
-        r = f.readline()
-        while r:
-            for sk,sv in selected.items():
-                if ">" in r:
-                    if r.split("_")[1].strip() in sv["taxid"][k]:
-                        write_next[sk] = True
-                        with open("db_files/"+sk+"_prot.fa", "a") as wf:
-                            wf.write(r)
-                    else:
-                        write_next[sk] = False
-                elif write_next[sk]:
-                    with open("db_files/"+sk+"_prot.fa", "a") as wf:
-                        wf.write(r)
-
+    if os.path.exists("prot/prot_"+k) and os.path.exists("nucl/nucl_"+k):
+        with open("prot/prot_"+k, "r") as f:
             r = f.readline()
-                
-    with open("nucl/nucl_"+k, "r") as f:
-        r = f.readline()
-        while r:
-            for sk,sv in selected.items():
-                if ">" in r:
-                    if r.split(" ")[0].split(".")[0][1:] in sv["accessionid"][k]:
-                        write_next[sk] = True
-                        with open("db_files/"+sk+"_nucl.fa", "a") as wf:
-                            wf.write(r)
-                    else:
-                        write_next[sk] = False
-                elif write_next[sk]:
-                    with open("db_files/"+sk+"_nucl.fa", "a") as wf:
-                        wf.write(r)
+            while r:
+                for sk,sv in selected.items():
+                    if ">" in r:
+                        if r.split("_")[1].strip() in sv["taxid"][k]:
+                            write_next[sk] = True
+                            outfiles_prot[sk].write(r)
+                        else:
+                            write_next[sk] = False
+                    elif write_next[sk]:
+                        outfiles_prot[sk].write(r)
 
+                r = f.readline()
+
+        with open("nucl/nucl_"+k, "r") as f:
             r = f.readline()
+            while r:
+                for sk,sv in selected.items():
+                    if ">" in r:
+                        if r.split(" ")[0].split(".")[0][1:] in sv["accessionid"][k]:
+                            write_next[sk] = True
+                            outfiles_prot[sk].write(r)
+                        else:
+                            write_next[sk] = False
+                    elif write_next[sk]:
+                        outfiles_prot[sk].write(r)
+
+                r = f.readline()
+        
+for k in outfiles_prot:
+    outfiles_prot[k].close()
+    outfiles_nucl[k].close()
