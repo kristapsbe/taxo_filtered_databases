@@ -247,11 +247,11 @@ for k,_ in selected["full_refseq"]["taxid"].items(): # just looping through all 
                     if ">" in r:
                         if r.split(" ")[0].split(".")[0][1:] in sv["accessionid"][k]:
                             write_next[sk] = True
-                            outfiles_prot[sk].write(r)
+                            outfiles_nucl[sk].write(r)
                         else:
                             write_next[sk] = False
                     elif write_next[sk]:
-                        outfiles_prot[sk].write(r)
+                        outfiles_nucl[sk].write(r)
 
                 r = f.readline()
         
