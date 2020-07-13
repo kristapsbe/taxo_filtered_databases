@@ -222,7 +222,7 @@ outfiles_prot = {k:open("db_files/"+k+"_prot.fa", "a") for k in selected.keys()}
 outfiles_nucl = {k:open("db_files/"+k+"_nucl.fa", "a") for k in selected.keys()}
 
 for k,_ in selected["full_refseq"]["taxid"].items(): # just looping through all of the species
-    #print(k)
+    print(k)
     
     if os.path.exists("prot/prot_"+k) and os.path.exists("nucl/nucl_"+k):
         with open("prot/prot_"+k, "r") as f:
