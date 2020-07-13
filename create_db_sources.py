@@ -173,33 +173,38 @@ def generate_dbfiles(accessionid, taxid, outname):
     write_next = False
 
     for k,v in taxid.items():
+        print(k)
         # only do anything if there are any taxids to work with and if we've got both prot and nucl data for this species
         if len(v) > 0 and os.path.exists("prot/prot_"+k) and os.path.exists("nucl/nucl_"+k):
             with open("prot/prot_"+k, "r") as f:
                 with open(outname+"_prot.fa", "a") as wf:
-                    data = f.read().split("\n")
-                    for r in data:
+                    r = f.readline()
+                    while r:
                         if ">" in r:
-                            if r.split("_")[1] in taxid[k]:
+                            if r.split("_")[1].strip() in taxid[k]:
                                 write_next = True
-                                wf.write(r+"\n")
+                                wf.write(r)
                             else:
                                 write_next = False
                         elif write_next:
-                            wf.write(r+"\n")
+                            wf.write(r)
+
+                        r = f.readline()
 
             with open("nucl/nucl_"+k, "r") as f:
                 with open(outname+"_nucl.fa", "a") as wf:
-                    data = f.read().split("\n")
-                    for r in data:
-                        if ">" in r:
+                    r = f.readline()
+                    while r:
+                        if ">" in r:  
                             if r.split(" ")[0].split(".")[0][1:] in accessionid[k]:
                                 write_next = True
-                                wf.write(r+"\n")
+                                wf.write(r)
                             else:
                                 write_next = False
                         elif write_next:
-                            wf.write(r+"\n")
+                            wf.write(r)
+
+                        r = f.readline()
 
 #
 # FULL REFSEQ
